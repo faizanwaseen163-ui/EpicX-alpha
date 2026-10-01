@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="samurai-night">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#06070b" />
+  <title>WORLDS — Three Games. Three Stories. One Experience.</title>
+  <meta name="description" content="A cinematic interactive showcase of Ghost of Tsushima, The Last of Us and Red Dead Redemption 2 — built with Three.js, GSAP and modern CSS." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700;800&family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="./styles.css" />
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+    }
+  }
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+  <script src="https://unpkg.com/lucide@0.417.0/dist/umd/lucide.js" defer></script>
+</head>
+
+<body>
+
+  <!-- ══════════════════════════════════════════════════════
+       LOADING SCREEN
+       ══════════════════════════════════════════════════════ -->
+  <div id="loader" class="loader" role="status" aria-live="polite">
+    <div class="loader__noise" aria-hidden="true"></div>
+    <div class="loader__inner">
+      <div class="loader__mark">W O R L D S</div>
+      <div class="loader__status" id="loaderStatus">INITIALIZING WORLD…</div>
+      <div class="loader__track"><span class="loader__bar" id="loaderBar"></span></div>
+      <div class="loader__meta">
+        <span id="loaderPct">0%</span>
+        <span class="loader__dot"></span>
+        <span id="loaderHint">CALIBRATING ATMOSPHERE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SCROLL PROGRESS
+       ══════════════════════════════════════════════════════ -->
+  <div class="scroll-progress" aria-hidden="true"><span id="scrollBar"></span></div>
+
+  <!-- ══════════════════════════════════════════════════════
+       THREE.JS CANVAS + ATMOSPHERE LAYERS
+       ══════════════════════════════════════════════════════ -->
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <div class="atmos" aria-hidden="true">
+    <div class="atmos__fog atmos__fog--a"></div>
+    <div class="atmos__fog atmos__fog--b"></div>
+    <div class="atmos__grain"></div>
+    <div class="atmos__scan"></div>
+    <div class="atmos__vignette"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       CUSTOM CURSOR
+       ══════════════════════════════════════════════════════ -->
+  <div class="cursor" id="cursor" aria-hidden="true">
+    <span class="cursor__ring"></span>
+    <span class="cursor__dot"></span>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       NAVBAR
+       ══════════════════════════════════════════════════════ -->
+  <header class="nav" id="nav">
+    <div class="nav__inner">
+      <a href="#home" class="nav__brand" aria-label="WORLDS — home">
+        <span class="nav__brand-mark" aria-hidden="true"></span>
+        <span class="nav__brand-text">WORLDS</span>
+      </a>
+
+      <nav class="nav__links" aria-label="Primary">
+        <a href="#home" class="nav__link is-active">Home</a>
+        <a href="#games" class="nav__link">Games</a>
+        <a href="#characters" class="nav__link">Characters</a>
+        <a href="#gameplay" class="nav__link">Gameplay</a>
+        <a href="#themes" class="nav__link">Themes</a>
+        <a href="#trailers" class="nav__link">Trailers</a>
+        <a href="#gallery" class="nav__link">Gallery</a>
+        <a href="#about" class="nav__link">About</a>
+      </nav>
+
+      <div class="nav__actions">
+        <button class="nav__theme-btn" id="navThemeBtn" aria-label="Open theme switcher">
+          <i data-lucide="palette"></i>
+          <span>Themes</span>
+        </button>
+        <button class="nav__burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <nav class="mobile-menu__links" aria-label="Mobile">
+      <a href="#home" class="mobile-menu__link">Home</a>
+      <a href="#games" class="mobile-menu__link">Games</a>
+      <a href="#characters" class="mobile-menu__link">Characters</a>
+      <a href="#gameplay" class="mobile-menu__link">Gameplay</a>
+      <a href="#themes" class="mobile-menu__link">Themes</a>
+      <a href="#trailers" class="mobile-menu__link">Trailers</a>
+      <a href="#gallery" class="mobile-menu__link">Gallery</a>
+      <a href="#about" class="mobile-menu__link">About</a>
+    </nav>
+    <div class="mobile-menu__foot">
+      <button class="btn btn--ghost btn--full" id="mobileThemeBtn">
+        <i data-lucide="palette"></i> Change Theme
+      </button>
+    </div>
+  </div>
+
+  <main>
+
+    <!-- ══════════════════════════════════════════════════════
+         HERO
+         ══════════════════════════════════════════════════════ -->
+    <section id="home" class="hero">
+      <div class="hero__media" aria-hidden="true">
+        <div class="hero__layer is-active" data-layer="a"></div>
+        <div class="hero__layer" data-layer="b"></div>
+      </div>
+      <div class="hero__veil" aria-hidden="true"></div>
+      <div class="hero__beam" aria-hidden="true"></div>
+
+      <div class="hero__inner">
+        <div class="hero__head">
+          <p class="hero__eyebrow" id="heroEyebrow">
+            <span class="hero__eyebrow-line"></span>
+            ENTER THE WORLD
+          </p>
+
+          <h1 class="hero__title" id="heroTitle">Ghost of Tsushima</h1>
+
+          <p class="hero__tagline" id="heroTagline">
+            Honor died on the battlefield. The Ghost was born in its place.
+          </p>
+
+          <div class="hero__meta" id="heroMeta">
+            <span>Sucker Punch Productions</span>
+            <span class="dot"></span>
+            <span>Open World · Action Adventure</span>
+            <span class="dot"></span>
+            <span>2020</span>
+          </div>
+
+          <div class="hero__actions">
+            <button class="btn btn--primary" id="exploreBtn" data-scroll="#games">
+              <i data-lucide="compass"></i>
+              <span>Explore Game</span>
+            </button>
+            <button class="btn btn--ghost" id="trailerBtn">
+              <i data-lucide="play"></i>
+              <span>Watch Trailer</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="hero__selector" role="tablist" aria-label="Select a game"></div>
+
+        <a href="#games" class="hero__scroll" aria-label="Scroll to content">
+          <span class="hero__scroll-line"></span>
+          <span class="hero__scroll-text">SCROLL</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════
+         GAMES / DOSSIER
+         ══════════════════════════════════════════════════════ -->
+    <section id="games" class="section">
+      <div class="container">
+        <header class="section__head reveal">
+          <span class="eyebrow"><span class="eyebrow__idx">01</span> GAME DOSSIER</span>
+          <h2 class="section__title" id="dossierTitle">Ghost of Tsushima</h2>
+          <p class="section__sub" id="dossierSub"></p>
+        </header>
+
+        <div class="stats reveal" id="statGrid"></div>
+
+        <div class="story-grid" id="storyGrid"></div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════
+         CHARACTERS
+         ══════════════════════════════════════════════════════ -->
+    <section id="characters" class="section section--alt">
+      <div class="container">
+        <header class="section__head reveal">
+          <span class="eyebrow"><span class="eyebrow__idx">02</span> CAST</span>
+          <h2 class="section__title">Characters</h2>
+          <p class="section__sub" id="charSub"></p>
+        </header>
+        <div class="char-grid" id="charGrid"></div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════
+         GAMEPLAY
+         ══════════════════════════════════════════════════════ -->
+    <section id="gameplay" class="section">
+      <div class="container">
+        <header class="section__head reveal">
+          <span class="eyebrow"><span class="eyebrow__idx">03</span> SYSTEMS</span>
+          <h2 class="section__title">Gameplay</h2>
+          <p class="section__sub" id="gameplaySub"></p>
+        </header>
+        <div class="play-grid" id="playGrid"></div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════
+         THEMES
+         ══════════════════════════════════════════════════════ -->
+    <section id="themes" class="section section--alt">
+      <div class="container">
+        <header class="section__head reveal">
+          <span class="eyebrow"><span class="eyebrow__idx">04</span> ATMOSPHERES</span>
+          <h2 class="section__title">Seven Cinematic Themes</h2>
+          <p class="section__sub">
+            Every theme rewires the colour grade, the particle system, the typography and the lighting.
+            Pick one — the world rebuilds itself around you.
+          </p>
+        </header>
+        <div class="theme-grid" id="themeGrid"></div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════
+         TRAILERS
+         ══════════════════════════════════════════════════════ -->
+    <section id="trailers" class="section">
+      <div class="container">
+        <header class="section__head reveal">
+          <span class="eyebrow"><span class="eyebrow__idx">05</span> CINEMA</span>
+          <h2 class="section__title">Official Trailers</h2>
+          <p class="section__sub">
+            Videos load only when you open them — nothing is pre-fetched, nothing is faked.
+          </p>
+        </header>
+        <div class="trailer-grid" id="trailerGrid"></div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════
+         GALLERY
+         ══════════════════════════════════════════════════════ -->
+    <section id="gallery" class="section section--alt">
+      <div class="container">
+        <header class="section__head reveal">
+          <span class="eyebrow"><span class="eyebrow__idx">06</span> GALLERY</span>
+          <h2 class="section__title">Visuals</h2>
+          <p class="section__sub" id="gallerySub">Official screenshots and wallpapers.</p>
+        </header>
+        <div class="gallery-grid" id="galleryGrid"></div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════
+         ABOUT
+         ══════════════════════════════════════════════════════ -->
+    <section id="about" class="section">
+      <div class="container">
+        <div class="about">
+          <div class="about__copy reveal">
+            <span class="eyebrow"><span class="eyebrow__idx">07</span> ABOUT</span>
+            <h2 class="section__title">Built as a world,<br />not a webpage.</h2>
+            <p>
+              WORLDS is an interactive showcase built with Three.js, GSAP and modern CSS.
+              It is a study in cinematic web design: layered atmosphere, purposeful motion,
+              and a theme engine that rebuilds the entire visual language in real time.
+            </p>
+            <p>
+              Three games. Three emotional registers — honour, survival, and freedom.
+              One continuous experience.
+            </p>
+            <div class="about__pills">
+              <span class="pill"><i data-lucide="box"></i> Three.js</span>
+              <span class="pill"><i data-lucide="zap"></i> GSAP</span>
+              <span class="pill"><i data-lucide="wind"></i> Modern CSS</span>
+              <span class="pill"><i data-lucide="accessibility"></i> A11y ready</span>
+            </div>
+          </div>
+          <div class="about__panel reveal">
+            <div class="about__panel-row"><span>Renderer</span><strong id="aboutRenderer">WebGL</strong></div>
+            <div class="about__panel-row"><span>Particles</span><strong id="aboutParticles">—</strong></div>
+            <div class="about__panel-row"><span>Active Theme</span><strong id="aboutTheme">Samurai Night</strong></div>
+            <div class="about__panel-row"><span>Active Game</span><strong id="aboutGame">Ghost of Tsushima</strong></div>
+            <div class="about__panel-row"><span>Motion</span><strong id="aboutMotion">Full</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ══════════════════════════════════════════════════════
+       FOOTER
+       ══════════════════════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__hero">
+        <h2 class="footer__statement">
+          THREE WORLDS.<br />
+          THREE STORIES.<br />
+          <span>ONE GAMING EXPERIENCE.</span>
+        </h2>
+      </div>
+
+      <div class="footer__cols">
+        <div class="footer__col">
+          <h3>Games</h3>
+          <button class="footer__link" data-game="ghost">Ghost of Tsushima</button>
+          <button class="footer__link" data-game="tlou">The Last of Us</button>
+          <button class="footer__link" data-game="rdr2">Red Dead Redemption 2</button>
+        </div>
+        <div class="footer__col">
+          <h3>Sections</h3>
+          <a href="#characters" class="footer__link">Characters</a>
+          <a href="#gameplay" class="footer__link">Gameplay</a>
+          <a href="#themes" class="footer__link">Themes</a>
+          <a href="#trailers" class="footer__link">Trailers</a>
+        </div>
+        <div class="footer__col">
+          <h3>Built with</h3>
+          <span class="footer__static">Three.js</span>
+          <span class="footer__static">GSAP</span>
+          <span class="footer__static">Modern CSS</span>
+        </div>
+        <div class="footer__col">
+          <h3>Disclaimer</h3>
+          <p class="footer__note">
+            Fan-made showcase. All game titles, characters, logos and trailers are the
+            property of their respective owners — Sucker Punch Productions, Naughty Dog,
+            Rockstar Games and Sony Interactive Entertainment. No ownership is claimed.
+          </p>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <span>© <span id="year"></span> WORLDS — Interactive Showcase</span>
+        <span class="footer__bottom-right">
+          <span class="live-dot"></span> Theme engine online
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ══════════════════════════════════════════════════════
+       FLOATING THEME SWITCHER
+       ══════════════════════════════════════════════════════ -->
+  <button class="theme-fab" id="themeFab" aria-label="Open theme switcher" aria-expanded="false" aria-controls="themePanel">
+    <i data-lucide="palette"></i>
+    <span class="theme-fab__pulse" aria-hidden="true"></span>
+  </button>
+
+  <aside class="theme-panel" id="themePanel" aria-hidden="true" aria-label="Theme switcher">
+    <header class="theme-panel__head">
+      <div>
+        <h2>Atmosphere</h2>
+        <p>Seven cinematic presets</p>
+      </div>
+      <button class="theme-panel__close" id="themePanelClose" aria-label="Close theme switcher">
+        <i data-lucide="x"></i>
+      </button>
+    </header>
+    <div class="theme-panel__body" id="themePanelBody"></div>
+    <footer class="theme-panel__foot">
+      <span>Saved to localStorage</span>
+      <button id="themeReset" class="theme-panel__reset">Reset</button>
+    </footer>
+  </aside>
+
+  <!-- ══════════════════════════════════════════════════════
+       TRAILER MODAL
+       ══════════════════════════════════════════════════════ -->
+  <div class="modal" id="trailerModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal__backdrop" data-close-modal></div>
+    <div class="modal__panel">
+      <header class="modal__head">
+        <div>
+          <h2 class="modal__title" id="modalTitle">Trailer</h2>
+          <p class="modal__sub" id="modalSub">Official video</p>
+        </div>
+        <div class="modal__actions">
+          <a class="modal__ext" id="modalExternal" href="#" target="_blank" rel="noopener noreferrer">
+            <i data-lucide="external-link"></i> YouTube
+          </a>
+          <button class="modal__close" id="modalClose" aria-label="Close trailer">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+      </header>
+      <div class="modal__frame" id="modalFrame">
+        <div class="modal__spinner" aria-hidden="true"></div>
+        <div class="modal__placeholder" id="modalPlaceholder">
+          <i data-lucide="film"></i>
+          <p>Loading official trailer…</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
